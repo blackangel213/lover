@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A-50 MAINSTAY: ĐÁNH CHẶN HÀNH VI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background-color: #050505;
+            color: #00ff00;
+            overflow-x: hidden;
+        }
+
+        .crt::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 10;
+            position: fixed;
+            pointer-events: none;
+            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(0,255,0,0.1) 50%, rgba(0,0,0,0) 100%);
+            opacity: 0.1;
+            animation: scanline 6s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { top: -100px; }
+            100% { top: 100%; }
+        }
+
+        .glitch-text {
+            animation: glitch 2s steps(100) infinite;
+        }
+
+        @keyframes glitch {
+            0% { text-shadow: 1px 0 0 red, -1px 0 0 blue; }
+            5% { text-shadow: -1px 0 0 red, 1px 0 0 blue; }
+            10% { text-shadow: 0px 0 0 red, 0px 0 0 blue; }
+            100% { text-shadow: 0px 0 0 red, 0px 0 0 blue; }
+        }
+
+        .breathe-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+        }
+
+        .breathe-circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid #00ff00;
+            animation: breathe 8s ease-in-out infinite;
+        }
+
+        .breathe-circle-inner {
+            width: 20px;
+            height: 20px;
+            background-color: #00ff00;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #00ff00;
+        }
+
+        .breathe-text {
+            position: absolute;
+            font-size: 0.8rem;
+            text-align: center;
+            font-weight: bold;
+            animation: breathe-text 8s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(0.3); opacity: 0.5; border-color: #00aa00; }
+            50% { transform: scale(1); opacity: 1; border-color: #00ff00; box-shadow: 0 0 20px rgba(0,255,0,0.4); }
+        }
+
+        @keyframes breathe-text {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; text-shadow: 0 0 8px #00ff00; }
+        }
+
+        .btn-action {
+            transition: all 0.3s ease;
+        }
+        .btn-action:hover {
+            box-shadow: 0 0 15px currentColor;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="crt min-h-screen flex flex-col items-center p-6 py-12 relative">
+    <div class="scanline"></div>
+
+    <!-- MÀN HÌNH ĐÁNH CHẶN CHÍNH -->
+    <main id="dashboardView" class="my-auto z-20 max-w-3xl w-full bg-black/80 border border-green-500/50 p-8 rounded shadow-[0_0_30px_rgba(0,255,0,0.15)] relative transition-all duration-500">
+        <!-- Header -->
+        <div class="border-b border-green-500/30 pb-4 mb-6 flex justify-between items-end">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold glitch-text text-red-500">KẾT NỐI BỊ TỪ CHỐI</h1>
+                <p class="text-xs text-green-400/70 mt-1">ĐÀI CHỈ HUY A-50 MAINSTAY - HỆ THỐNG ĐÁNH CHẶN TỰ ĐỘNG</p>
+            </div>
+            <div class="text-right text-xs min-w-[120px]">
+                <p id="clock" class="font-bold text-green-400"></p>
+                <p>STATUS: <span class="text-red-500 animate-pulse">OVERLOAD_DETECTED</span></p>
+                <div class="mt-2 text-left">
+                    <p id="dayProgressText" class="text-[9px] text-green-400/70 mb-0.5">TIẾN ĐỘ NGÀY: 0%</p>
+                    <div class="w-full bg-green-900/30 h-1 rounded overflow-hidden">
+                        <div id="dayProgress" class="bg-green-500 h-1 rounded transition-all duration-1000" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nội dung thông điệp -->
+        <div class="space-y-4 text-sm md:text-base mb-8">
+            <p>> Chào Kiến trúc sư <span class="font-bold text-white">Black Angel</span>.</p>
+            
+            <p>> Bạn đang cố gắng truy cập vào một vùng nhiễu động thông tin (Social Media). Hệ thống A-50 nhận thấy CPU của bạn đang quá nhiệt và bạn đang tìm kiếm dopamine để xoa dịu sự căng thẳng.</p>
+
+            <p class="text-red-400 font-bold">> CẢNH BÁO: Lướt mạng lúc này KHÔNG PHẢI là nghỉ ngơi. Nó sẽ làm dung lượng RAM của bạn cạn kiệt hoàn toàn và khiến sự mụ mị trở nên tồi tệ hơn.</p>
+
+            <p>> Hãy nhớ lại bản thiết kế Hạm đội của chúng ta: Su-35S (Đại học), Su-37 (HSG), MiG-31 (IELTS). Bạn đang là người cầm lái. Gia đình đang ở phía sau bạn. Bạn không được phép để hệ thống sập nguồn bằng những cú nhấp chuột vô thức.</p>
+        </div>
+
+        <!-- Khu vực thở -->
+        <div class="bg-green-900/20 border border-green-500/20 p-6 rounded mb-8 text-center flex flex-col items-center">
+            <p class="text-xs text-green-400 mb-6 uppercase tracking-widest">Hạ nhiệt CPU bằng giao thức hít thở</p>
+            
+            <div class="breathe-container">
+                <div class="breathe-circle"></div>
+                <div class="breathe-circle-inner"></div>
+                <div class="breathe-text mt-24" id="breatheText">HÍT VÀO...</div>
+            </div>
+            
+            <p class="text-xs text-gray-400 mt-8 max-w-md">Hãy nhìn theo vòng tròn. Hít vào khi nó phình to, thở ra khi nó thu nhỏ. Làm 5 chu kỳ trước khi đưa ra quyết định tiếp theo.</p>
+        </div>
+
+        <!-- Lựa chọn hành động -->
+        <div class="mb-5 bg-black/50 p-4 border border-green-500/30 rounded">
+            <p class="text-xs text-green-400 mb-2">> ĐỂ MỞ KHÓA HỆ THỐNG, HÃY XÁC NHẬN MỤC TIÊU BẠN PHẢI LÀM NGAY BÂY GIỜ:</p>
+            <input type="text" id="focusInput" autocomplete="off" placeholder="Ví dụ: Giải 5 câu Vật Lý VDC, Chữa đề IELTS..." class="w-full bg-transparent border-b border-green-500/50 text-green-300 p-2 text-sm focus:outline-none focus:border-green-400 focus:shadow-[0_1px_5px_rgba(0,255,0,0.2)] transition-all font-mono">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button id="btnReturn" onclick="proceedToWork()" class="btn-action border border-green-500/30 text-green-500/30 py-3 px-4 font-bold text-sm uppercase cursor-not-allowed transition-all" disabled>
+                [1] CHỜ XÁC NHẬN MỤC TIÊU...
+            </button>
+            <button onclick="proceedToSleep()" class="btn-action border border-red-500 text-red-500 py-3 px-4 font-bold text-sm uppercase hover:bg-red-500 hover:text-white focus:outline-none">
+                [2] Tôi kiệt sức rồi. Kích hoạt Sleep Mode
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 pt-4 border-t border-green-500/30 text-center">
+            <p id="quoteDisplay" class="text-xs text-green-400/60 italic glitch-text" style="animation-duration: 4s;"></p>
+        </div>
+    </main>
+
+    <!-- MÀN HÌNH CHUYỂN GIAO (ẨN MẶC ĐỊNH) -->
+    <main id="messageView" class="hidden my-auto z-20 max-w-2xl w-full bg-black/90 border border-green-500/50 p-10 rounded text-center shadow-[0_0_40px_rgba(0,255,0,0.2)] relative transition-all duration-500">
+        <h2 id="msgTitle" class="text-3xl md:text-4xl font-bold mb-6 glitch-text uppercase tracking-widest"></h2>
+        
+        <div class="bg-black/50 border-l-4 border-green-500 p-6 mb-8 text-left mx-auto max-w-lg shadow-[inset_0_0_20px_rgba(0,255,0,0.05)]">
+            <p id="msgBody" class="text-base md:text-lg text-green-300 leading-relaxed"></p>
+        </div>
+
+        <div class="flex justify-center">
+            <button id="closeTabBtn" onclick="window.close()" class="btn-action border py-3 px-8 font-bold text-sm uppercase focus:outline-none tracking-widest">
+                ĐÓNG TAB NGAY
+            </button>
+        </div>
+        
+        <p class="text-xs text-gray-500 mt-6 animate-pulse" id="autoCloseText">Tab sẽ tự động đóng sau 5 giây...</p>
+    </main>
+
+    <script>
+        // Cập nhật đồng hồ hiển thị
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('vi-VN', { hour12: false });
+            document.getElementById('clock').textContent = `SYS.TIME: ${timeString}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Cập nhật thanh tiến độ ngày
+        function updateDayProgress() {
+            const now = new Date();
+            const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const elapsed = now - startOfDay;
+            const total = 24 * 60 * 60 * 1000;
+            const percent = ((elapsed / total) * 100).toFixed(1);
+            
+            const progressElement = document.getElementById('dayProgress');
+            const progressText = document.getElementById('dayProgressText');
+            
+            if(progressElement && progressText) {
+                progressElement.style.width = percent + '%';
+                progressText.textContent = `TIẾN ĐỘ NGÀY: ${percent}%`;
+            }
+        }
+        setInterval(updateDayProgress, 60000);
+        updateDayProgress();
+
+        // Xử lý Input Khóa Mục Tiêu
+        const focusInput = document.getElementById('focusInput');
+        const btnReturn = document.getElementById('btnReturn');
+        
+        if(focusInput && btnReturn) {
+            focusInput.addEventListener('input', function() {
+                if (this.value.trim().length > 3) {
+                    btnReturn.disabled = false;
+                    btnReturn.className = "btn-action border border-green-500 text-green-500 py-3 px-4 font-bold text-sm uppercase hover:bg-green-500 hover:text-black focus:outline-none shadow-[0_0_15px_rgba(0,255,0,0.3)]";
+                    btnReturn.innerText = "[1] TIẾN HÀNH: " + this.value.trim();
+                } else {
+                    btnReturn.disabled = true;
+                    btnReturn.className = "btn-action border border-green-500/30 text-green-500/30 py-3 px-4 font-bold text-sm uppercase cursor-not-allowed transition-all";
+                    btnReturn.innerText = "[1] CHỜ XÁC NHẬN MỤC TIÊU...";
+                }
+            });
+        }
+
+        // Tạo trích dẫn ngẫu nhiên
+        const quotes = [
+            "Kỷ luật là cầu nối giữa mục tiêu và thành tựu.",
+            "Nỗi đau của sự kỷ luật nhẹ hơn ngàn lần nỗi đau của sự hối hận.",
+            "Hạm đội không thể tiến lên nếu đài chỉ huy tê liệt vì sự cám dỗ.",
+            "Chiến thắng ngày hôm nay bắt đầu từ việc từ chối sự dễ dãi ngay lúc này.",
+            "Bạn không thể kiểm soát ngoại cảnh, nhưng có toàn quyền kiểm soát tâm trí.",
+            "Động lực giúp bạn cất cánh, kỷ luật giúp bạn bay đến đích.",
+            "Sự tập trung là tiền tệ đắt giá nhất. Đừng tiêu xài nó vào những tab vô nghĩa.",
+            "You become what you DO, not what you think."
+        ];
+        const quoteDisplay = document.getElementById('quoteDisplay');
+        if(quoteDisplay) {
+            quoteDisplay.textContent = `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
+        }
+
+        // Animation thở
+        const breatheText = document.getElementById('breatheText');
+        setInterval(() => {
+            if (breatheText.innerText === "HÍT VÀO...") {
+                breatheText.innerText = "THỞ RA...";
+            } else {
+                breatheText.innerText = "HÍT VÀO...";
+            }
+        }, 4000);
+
+        // HÀM CHUYỂN GIAO: TRỞ LẠI HỌC TẬP
+        function proceedToWork() {
+            const task = focusInput.value.trim();
+            
+            // Ẩn dashboard, hiện message
+            document.getElementById('dashboardView').classList.add('hidden');
+            document.getElementById('messageView').classList.remove('hidden');
+
+            // Set nội dung
+            const msgTitle = document.getElementById('msgTitle');
+            const msgBody = document.getElementById('msgBody');
+            const closeTabBtn = document.getElementById('closeTabBtn');
+
+            msgTitle.innerText = "MỤC TIÊU ĐÃ KHÓA";
+            msgTitle.className = "text-3xl md:text-4xl font-bold mb-6 text-green-400 glitch-text uppercase tracking-widest";
+            
+            document.querySelector('#messageView > div').className = "bg-black/50 border-l-4 border-green-500 p-6 mb-8 text-left mx-auto max-w-lg shadow-[inset_0_0_20px_rgba(0,255,0,0.05)]";
+            msgBody.innerHTML = `> Nhiệm vụ xác nhận: <span class="text-white font-bold underline decoration-green-500 underline-offset-4">${task}</span><br><br>> Hệ thống phòng thủ tâm lý đã được gỡ bỏ. Hãy quay lại bàn làm việc với một cái đầu lạnh.<br><br>> Chúc may mắn, Chỉ huy! Vũ trụ luôn giúp chúng ta nếu ta cố gắng!`;
+            
+            closeTabBtn.className = "btn-action border border-green-500 text-green-500 hover:bg-green-500 hover:text-black py-3 px-8 font-bold text-sm uppercase focus:outline-none tracking-widest";
+
+            startAutoCloseCountdown();
+        }
+
+        // HÀM CHUYỂN GIAO: ĐI NGỦ / NGHỈ NGƠI
+        function proceedToSleep() {
+            // Ẩn dashboard, hiện message
+            document.getElementById('dashboardView').classList.add('hidden');
+            document.getElementById('messageView').classList.remove('hidden');
+
+            // Set nội dung
+            const msgTitle = document.getElementById('msgTitle');
+            const msgBody = document.getElementById('msgBody');
+            const closeTabBtn = document.getElementById('closeTabBtn');
+
+            msgTitle.innerText = "KÍCH HOẠT SLEEP MODE";
+            msgTitle.className = "text-3xl md:text-4xl font-bold mb-6 text-blue-400 glitch-text uppercase tracking-widest";
+            
+            document.querySelector('#messageView > div').className = "bg-black/50 border-l-4 border-blue-500 p-6 mb-8 text-left mx-auto max-w-lg shadow-[inset_0_0_20px_rgba(0,0,255,0.05)]";
+            msgBody.innerHTML = `> Mệnh lệnh tối cao: Xả RAM và ngắt kết nối.<br><br>> <span class="text-white">Nghỉ ngơi không phải là bỏ cuộc, mà là chiến lược bảo toàn lực lượng cho Hạm đội vào ngày mai.</span><br><br>> Hãy dọn dẹp bàn học và nhắm mắt lại. Chúc ngủ ngon, Black Angel. Ngày mai luôn là một ngày mới`;
+            
+            closeTabBtn.className = "btn-action border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-black py-3 px-8 font-bold text-sm uppercase focus:outline-none tracking-widest shadow-[0_0_15px_rgba(0,0,255,0.2)]";
+
+            startAutoCloseCountdown();
+        }
+
+        // Đếm ngược đóng tab
+        function startAutoCloseCountdown() {
+            let countdown = 5;
+            const textElement = document.getElementById('autoCloseText');
+            const btn = document.getElementById('closeTabBtn');
+            
+            const interval = setInterval(() => {
+                countdown--;
+                textElement.innerText = `Tab sẽ tự động đóng sau ${countdown} giây...`;
+                btn.innerText = `ĐÓNG TAB NGAY (${countdown}S)`;
+                if(countdown <= 0) {
+                    clearInterval(interval);
+                    window.close(); // Thử đóng tab
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
